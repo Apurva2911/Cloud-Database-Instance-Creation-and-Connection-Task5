@@ -69,19 +69,96 @@ VALUES ('Aarav', 'Cloud', 95), ('Diya', 'DevOps', 89);
 SELECT * FROM students;
 
 6️⃣ Optional – Remote Access via Python
-import mysql.connector
+import pymysql
 
-conn = mysql.connector.connect(
-  host="database-1.xxxxx.ap-south-1.rds.amazonaws.com",
-  user="admin",
-  password="yourpassword",
-  database="intern_demo"
-)
+# AWS RDS connection details
+database_instance_endpoint = "database-1.c7i0qg28i5r3.ap-south-1.rds.amazonaws.com"
+port = 3306
+dbname = "sample"
+user = "admin"
+password = "Apurva1234"
 
-cursor = conn.cursor()
-cursor.execute("SELECT * FROM students")
-for row in cursor.fetchall():
-    print(row)
+try:
+    print("🚀 Connecting to AWS RDS server (without DB)...")
+    # Step 1: Connect without specifying a database
+    connection = pymysql.connect(
+        host=database_instance_endpoint,
+        user=user,
+        password=password,
+        port=port
+    )
+    print("✅ Connected to RDS instance!")
+
+    with connection.cursor() as cur:
+        # Step 2: Create the database if it doesn't exist
+        cur.execute(f"CREATE DATABASE IF NOT EXISTS {dbname}")
+        print(f"🧱 Database '{dbname}' verified/created successfully.")
+
+    connection.close()
+
+    # Step 3: Reconnect to the newly created or existing database
+    print(f"🔁 Reconnecting to database '{dbname}'...")
+    connection = pymysql.connect(
+        host=database_instance_endpoint,
+        user=user,
+        password=password,
+        database=dbname,
+        port=port
+    )
+    print("✅ Connected to the target database!")
+
+    with connection.cursor() as mycur:
+        # Step 4: Create the 'students' table if not exists
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS students (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            firstname VARCHAR(255) NOT NULL,
+            lastname VARCHAR(255) NOT NULL,
+            grade VARCHAR(10)
+        ) ENGINE=InnoDB;
+        """
+        mycur.execute(create_table_query)
+        print("📋 Table 'students' checked/created.")
+
+        # Step 5: Insert sample data (ignore duplicates)
+        insert_query = "INSERT INTO students (id, firstname, lastname) VALUES (%s, %s, %s)"
+        try:
+            mycur.execute(insert_query, ('12345', 'Tata', 'Tutu'))
+            mycur.execute(insert_query, ('34567', 'Momo', 'Meme'))
+        except pymysql.err.IntegrityError:
+            print("⚠️ Duplicate IDs found — skipping inserts.")
+        connection.commit()
+        print("📥 Data insertion complete!")
+
+        # Step 6: Fetch and display all rows
+        mycur.execute("SELECT * FROM students")
+        rows = mycur.fetchall()
+        print("\n📊 Current Table Data:")
+        for row in rows:
+            print(row)
+
+except Exception as e:
+    print("❌ Error:", e)
+
+finally:
+    if 'connection' in locals() and connection.open:
+        connection.close()
+        print("\n🔒 Connection closed.")
+
+OUTPUT : 
+🚀 Connecting to AWS RDS server (without DB)...
+✅ Connected to RDS instance!
+🧱 Database 'sample' verified/created successfully.
+🔁 Reconnecting to database 'sample'...
+✅ Connected to the target database!
+📋 Table 'students' checked/created.
+📥 Data insertion complete!
+
+📊 Current Table Data:
+(12345, 'Tata', 'Tutu', None)
+(34567, 'Momo', 'Meme', None)
+
+🔒 Connection closed.
 
 7️⃣ Clean Up
 
