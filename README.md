@@ -108,8 +108,8 @@ Learn to create, configure, and manage cloud SQL databases.
 Practice SQL CRUD operations on a live cloud-hosted database.
 
 Gain skills useful for data engineering, analytics, and full-stack applications.
-✍️ Author
 
+✍️ Author
 Apurva Kadam
 📧 Email: apurvak2911@gmail.com
 📍 Passionate about Cloud Computing,DevOps,AWS
